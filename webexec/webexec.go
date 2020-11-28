@@ -1,7 +1,6 @@
 package webexec
 
 import (
-	"crypto/tls"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -12,11 +11,7 @@ import (
 
 func ExecuteCall(path string, kind interface{}) (interface{}, error) {
 	log.Printf("Executing call towards: %s", path)
-	tr := &http.Transport{
-		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
-	}
-	client := &http.Client{Transport: tr}
-	resp, err := client.Get(path)
+	resp, err := getClient().Get(path)
 	if err != nil {
 		log.Println(err)
 		return kind, err
