@@ -5,10 +5,11 @@ import (
 	"log"
 
 	"github.com/gregito/vrviewer/comp"
+	"github.com/gregito/vrviewer/comp/model"
 )
 
 func main() {
-	kind := comp.Boulder
+	kind := model.Lead
 	comp, err := comp.ListCompetitionsByKind(&kind)
 	if err != nil {
 		log.Fatalln(err)
