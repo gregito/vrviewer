@@ -8,5 +8,5 @@ To compile it to a runnable binary use the make target:
 
 Afterwards you can find the compiled binaries under the `/build/Linux|Darwin|Windows/` folder with the name of `vrr`(.exe in case of Windows)
 
-At this point the application has no grafical interface and not yet decided whether it will have or not.
-This is only for personal usage since I have no contact with the MHSSZ therefore if some breaking API change happens on their site this application may not be operating anymore.
+At this point, the application has no graphical interface and not yet decided whether it will have or not.
+This is only for personal usage since I have no contact with the MHSSZ therefore if some breaking API change happens on their side this application may not be operating anymore.
