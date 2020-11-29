@@ -8,11 +8,12 @@ import (
 )
 
 func main() {
-	comp, err := comp.ListCompetitions(2020, comp.Boulder)
+	kind := comp.Boulder
+	comp, err := comp.ListCompetitionsByKind(&kind)
 	if err != nil {
 		log.Fatalln(err)
 	}
 	for _, c := range comp {
-		fmt.Printf("%+v\n", c)
+		fmt.Printf("%d :: %s :: %s\n", c.Year, c.Name, c.Type)
 	}
 }

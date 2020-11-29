@@ -28,20 +28,20 @@ type InputElement struct {
 
 type ClimbingType string
 
-const (
-	Boulder ClimbingType = "BOULDER"
-	Lead    ClimbingType = "LEAD"
-)
-
 type status string
 
 const (
-	Active status = "ACTIVE"
-	Closed status = "CLOSED"
+	Active                   status       = "ACTIVE"
+	Closed                   status       = "CLOSED"
+	Boulder                  ClimbingType = "BOULDER"
+	Lead                     ClimbingType = "LEAD"
+	basePath                 string       = "https://vr2.mhssz.hu/api/1.0.0/competitions/"
+	firstValidYear                        = 2018
+	valueTodisableYearFilter              = 0
 )
 
 func GetCompetition(id int64) (*Competition, error) {
-	result, err := webexec.ExecuteCall(fmt.Sprintf("https://vr2.mhssz.hu/api/1.0.0/competitions/%d", id), InputElement{})
+	result, err := webexec.ExecuteCall(fmt.Sprintf("%s%d", basePath, id), InputElement{})
 	if err != nil {
 		log.Println(err)
 		return nil, err
@@ -51,8 +51,20 @@ func GetCompetition(id int64) (*Competition, error) {
 	return cp, nil
 }
 
-func ListCompetitions(year int64, kind ClimbingType) ([]*Competition, error) {
-	resp, err := webexec.ExecuteCall("https://vr2.mhssz.hu/api/1.0.0/competitions/", []InputElement{})
+func ListAllCompetitions() ([]*Competition, error) {
+	return ListCompetitionsByYearAndKind(valueTodisableYearFilter, nil)
+}
+
+func ListCompetitionsByKind(kind *ClimbingType) ([]*Competition, error) {
+	return ListCompetitionsByYearAndKind(valueTodisableYearFilter, kind)
+}
+
+func ListCompetitionsByYear(year int64) ([]*Competition, error) {
+	return ListCompetitionsByYearAndKind(year, nil)
+}
+
+func ListCompetitionsByYearAndKind(year int64, kind *ClimbingType) ([]*Competition, error) {
+	resp, err := webexec.ExecuteCall(basePath, []InputElement{})
 	if err != nil {
 		log.Println(err)
 		return nil, err
@@ -63,25 +75,41 @@ func ListCompetitions(year int64, kind ClimbingType) ([]*Competition, error) {
 	return result, nil
 }
 
-func filterCompetitions(comps []*Competition, year int64, kind ClimbingType) []*Competition {
+func filterCompetitions(comps []*Competition, year int64, kind *ClimbingType) []*Competition {
 	result := filterCompetitionsByYear(comps, year)
+	if kind == nil || (*kind != Boulder && *kind != Lead) {
+		return result
+	}
 	return filterCompetitionsByType(result, kind)
 }
 
 func filterCompetitionsByYear(comps []*Competition, year int64) []*Competition {
-	var result []*Competition
-	for _, c := range comps {
-		if c.Year == year {
-			result = append(result, c)
+	if year != valueTodisableYearFilter {
+		if year < firstValidYear {
+			return []*Competition{}
 		}
+		var result []*Competition
+		for _, c := range comps {
+			if c.Year == year {
+				result = append(result, c)
+			}
+		}
+		return result
+	} else {
+		var result []*Competition
+		for _, c := range comps {
+			if c.Year >= firstValidYear {
+				result = append(result, c)
+			}
+		}
+		return result
 	}
-	return result
 }
 
-func filterCompetitionsByType(comps []*Competition, kind ClimbingType) []*Competition {
+func filterCompetitionsByType(comps []*Competition, kind *ClimbingType) []*Competition {
 	var result []*Competition
 	for _, c := range comps {
-		if c.Type == kind {
+		if c.Type == *kind {
 			result = append(result, c)
 		}
 	}
