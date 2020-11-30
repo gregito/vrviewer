@@ -39,7 +39,7 @@ func ListCompetitionsByYear(year int64) ([]*dto.Competition, error) {
 }
 
 func GetCompetitionResultsByCompetitionId(id int64) (*model.CompetitionDetail, error) {
-	resp, err := webexec.ExecuteCall(basePath, model.CompetitionDetail{})
+	resp, err := webexec.ExecuteCall(fmt.Sprintf("%s%d/results", basePath, id), model.CompetitionDetail{})
 	if err != nil {
 		log.Println(err)
 		return nil, err

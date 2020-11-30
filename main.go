@@ -5,16 +5,18 @@ import (
 	"log"
 
 	"github.com/gregito/vrviewer/comp"
-	"github.com/gregito/vrviewer/comp/model"
 )
 
 func main() {
-	kind := model.Lead
-	comp, err := comp.ListCompetitionsByKind(&kind)
+	comp, err := comp.GetCompetitionResultsByCompetitionId(33)
 	if err != nil {
 		log.Fatalln(err)
 	}
-	for _, c := range comp {
-		fmt.Printf("%d :: %s :: %s\n", c.Year, c.Name, c.Type)
+	for _, c := range comp.Partitions {
+		for _, p := range c.Results {
+			if len(p.SectionResults) > 1 {
+				fmt.Printf("%s-%s :: %s (%d.)\n", c.Gender, c.AgeGroup, p.Name, p.Position)
+			}
+		}
 	}
 }
