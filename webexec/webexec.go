@@ -10,8 +10,10 @@ import (
 )
 
 func ExecuteCall(path string, kind interface{}) (interface{}, error) {
+	log.Println("HTTP request call has been requested")
+	client := getClient()
 	log.Printf("Executing call towards: %s", path)
-	resp, err := getClient().Get(path)
+	resp, err := client.Get(path)
 	if err != nil {
 		log.Println(err)
 		return kind, err
@@ -24,6 +26,8 @@ func ExecuteCall(path string, kind interface{}) (interface{}, error) {
 	}
 	var temp interface{}
 	_ = json.NewDecoder(resp.Body).Decode(&temp)
-	mapstructure.Decode(temp, &kind)
+	if err = mapstructure.Decode(temp, &kind); err != nil {
+		log.Println(fmt.Sprintf("Unable to decode content from map to: %T\n", kind))
+	}
 	return kind, nil
 }

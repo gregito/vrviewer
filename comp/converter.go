@@ -10,7 +10,7 @@ import (
 )
 
 func convertInterfaceArrayToCompetitionPointerArray(intf interface{}) *[]model.Competition {
-	var i interface{} = intf
+	var i = intf
 	c, ok := i.([]model.Competition)
 	if !ok {
 		log.Printf("Unable to convert type (%s) to model.Competition", fmt.Sprintf("%T\n", intf))
@@ -31,7 +31,7 @@ func convertCompetitionArrayPointerToCompetitionPointerArray(fetchedData *[]mode
 }
 
 func convertInterfaceToCompetitionPointer(intf interface{}) *model.Competition {
-	var i interface{} = intf
+	var i = intf
 	c, ok := i.(model.Competition)
 	if !ok {
 		log.Printf("Unable to convert type (%s) to model.Competition", fmt.Sprintf("%T\n", intf))
@@ -41,7 +41,7 @@ func convertInterfaceToCompetitionPointer(intf interface{}) *model.Competition {
 }
 
 func convertInterfaceToCompetitionDetailPointer(intf interface{}) *model.CompetitionDetail {
-	var i interface{} = intf
+	var i = intf
 	c, ok := i.(model.CompetitionDetail)
 	if !ok {
 		log.Printf("Unable to convert type (%s) to model.CompetitionDetail", fmt.Sprintf("%T\n", intf))
@@ -60,4 +60,22 @@ func convertCompetitionPointerToCompetitionPointer(fetchedData *model.Competitio
 		}
 	}
 	return nil
+}
+
+func convertSectionResultAndSectionMapToSectionDto(sr model.SectionResult, s map[string]model.Section) dto.Section {
+	ss := "?"
+	for s2 := range s {
+		so := s[s2]
+		if so.ID == sr.Section {
+			ss = so.Name
+		}
+	}
+	section := &dto.Section{
+		Name:      ss,
+		Tops:      sr.Tops,
+		Zones:     sr.Zones,
+		TopTries:  sr.TopTries,
+		ZoneTries: sr.ZoneTries,
+	}
+	return *section
 }

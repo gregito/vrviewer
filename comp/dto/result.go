@@ -1,5 +1,7 @@
 package dto
 
 type CompetitorResult struct {
-	Name string
+	Name            string
+	CurrentPosition string
+	SectionResults  []Section
 }

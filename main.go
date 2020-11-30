@@ -2,21 +2,26 @@ package main
 
 import (
 	"fmt"
-	"log"
-
 	"github.com/gregito/vrviewer/comp"
+	"log"
+	"strconv"
 )
 
 func main() {
-	comp, err := comp.GetCompetitionResultsByCompetitionId(33)
+	competition, err := comp.GetCompetitorOnCompetitionByCompetitionIdAndCompetitorName(33, "Farkas Tamás")
 	if err != nil {
 		log.Fatalln(err)
 	}
-	for _, c := range comp.Partitions {
-		for _, p := range c.Results {
-			if len(p.SectionResults) > 1 {
-				fmt.Printf("%s-%s :: %s (%d.)\n", c.Gender, c.AgeGroup, p.Name, p.Position)
-			}
-		}
+	fmt.Println("Name: " + competition.Name)
+	fmt.Println()
+	fmt.Println("Position: " + competition.CurrentPosition)
+	fmt.Println()
+	for _, r := range competition.SectionResults {
+		fmt.Println(r.Name + ":")
+		fmt.Println("Tops: \t\t" + strconv.FormatInt(r.Tops, 10))
+		fmt.Println("Zones: \t\t" + strconv.FormatInt(r.Zones, 10))
+		fmt.Println("Top tries: \t" + strconv.FormatInt(r.TopTries, 10))
+		fmt.Println("Zone tries: \t" + strconv.FormatInt(r.ZoneTries, 10))
+		fmt.Println()
 	}
 }
