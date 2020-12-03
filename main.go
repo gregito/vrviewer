@@ -24,7 +24,7 @@ func main() {
 			competitionResults = append(competitionResults, res)
 		}
 	}
-	listStuff(competitionResults, "Mészáros Gergely", "Farkas Tamás")
+	listStuff(competitionResults, "Mészáros Gergely")
 }
 
 func listStuff(competitionResults []model.CompetitionDetail, names ...string) {
@@ -34,21 +34,28 @@ func listStuff(competitionResults []model.CompetitionDetail, names ...string) {
 		competitorResults := comp.GetCompetitorResults(name, competitionResults)
 
 		for _, result := range competitorResults {
-			fmt.Println(result.CompetitionName)
-			printSectionResults(result.SectionResults)
+			fmt.Printf("%s - %s\n", result.CompetitionName, result.Type)
+			printSections(result.SectionResults)
 		}
 		fmt.Println("------------------")
 	}
 
 }
 
-func printSectionResults(sr []dto.Section) {
+func printSections(sr []dto.Section) {
 	for _, r := range sr {
 		fmt.Println(r.Name + ":")
-		fmt.Println("Tops: \t\t" + strconv.FormatInt(r.Tops, 10))
-		fmt.Println("Zones: \t\t" + strconv.FormatInt(r.Zones, 10))
-		fmt.Println("Top tries: \t" + strconv.FormatInt(r.TopTries, 10))
-		fmt.Println("Zone tries: \t" + strconv.FormatInt(r.ZoneTries, 10))
+		if r.Points > 0 {
+			// in case of lead climbing competitions only the points that matters therefore all other fields should be empty
+			fmt.Println("Points: \t" + strconv.FormatInt(r.Points, 10))
+		} else {
+			// on the other hand, on boulder competitions the tops, zones and their tries matters so printing point
+			// is not necessary since it is always zero
+			fmt.Println("Tops: \t\t" + strconv.FormatInt(r.Tops, 10))
+			fmt.Println("Zones: \t\t" + strconv.FormatInt(r.Zones, 10))
+			fmt.Println("Top tries: \t" + strconv.FormatInt(r.TopTries, 10))
+			fmt.Println("Zone tries: \t" + strconv.FormatInt(r.ZoneTries, 10))
+		}
 		fmt.Println()
 	}
 }

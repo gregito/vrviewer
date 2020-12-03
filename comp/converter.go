@@ -61,7 +61,7 @@ func convertCompetitionPointerToCompetitionPointer(fetchedData model.Competition
 	return dto.Competition{}
 }
 
-func convertSectionResultAndSectionMapToSectionDto(sr model.SectionResult, s map[string]model.Section) dto.Section {
+func convertSectionResultAndSectionMapToSectionDto(sr model.SectionResult, s map[string]model.Section, climbingType model.ClimbingType) dto.Section {
 	ss := "?"
 	for s2 := range s {
 		so := s[s2]
@@ -69,12 +69,24 @@ func convertSectionResultAndSectionMapToSectionDto(sr model.SectionResult, s map
 			ss = so.Name
 		}
 	}
-	section := &dto.Section{
-		Name:      ss,
-		Tops:      sr.Tops,
-		Zones:     sr.Zones,
-		TopTries:  sr.TopTries,
-		ZoneTries: sr.ZoneTries,
+	var section dto.Section
+	if climbingType == model.Boulder {
+		section = dto.Section{
+			Name:      ss,
+			Tops:      sr.Tops,
+			Zones:     sr.Zones,
+			TopTries:  sr.TopTries,
+			ZoneTries: sr.ZoneTries,
+		}
+	} else {
+		section = dto.Section{
+			Name:      ss,
+			Points:    sr.Points,
+			Tops:      sr.Tops,
+			Zones:     sr.Zones,
+			TopTries:  sr.TopTries,
+			ZoneTries: sr.ZoneTries,
+		}
 	}
-	return *section
+	return section
 }

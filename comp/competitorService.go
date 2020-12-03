@@ -29,15 +29,23 @@ func GetCompetitorResultInCompetitionDetail(name string, cd model.CompetitionDet
 	result := findResultOfCompetitor(name, cd)
 	sectionResult := findSectionResultOfCompetitor(name, result)
 	var sections []dto.Section
+	climbingType := cd.Partitions[0].ClimbingType
+	// TODO: filter out competitions where one has no results hence probably haven't participate
 	for _, s := range sectionResult {
-		sections = append(sections, convertSectionResultAndSectionMapToSectionDto(s, cd.Sections))
+		if s.Points > 0 {
+			sections = append(sections, convertSectionResultAndSectionMapToSectionDto(s, cd.Sections, climbingType))
+		}
 	}
-	return dto.CompetitorResult{
-		CompetitionName: cd.Name,
-		Name:            name,
-		CurrentPosition: strconv.FormatInt(result.Position, 10),
-		SectionResults:  sections,
+	if len(sections) > 0 {
+		return dto.CompetitorResult{
+			CompetitionName: cd.Name,
+			Type:            climbingType,
+			Name:            name,
+			CurrentPosition: strconv.FormatInt(result.Position, 10),
+			SectionResults:  sections,
+		}
 	}
+	return dto.CompetitorResult{}
 }
 
 func findResultOfCompetitor(name string, cd model.CompetitionDetail) model.Result {
