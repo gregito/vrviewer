@@ -2,64 +2,63 @@ package comp
 
 import (
 	"fmt"
-	"log"
-	"reflect"
-
+	"github.com/gregito/vrviewer/comp/common"
 	"github.com/gregito/vrviewer/comp/dto"
 	"github.com/gregito/vrviewer/comp/model"
+	"log"
 )
 
-func convertInterfaceArrayToCompetitionPointerArray(intf interface{}) *[]model.Competition {
-	var i = intf
+func convertInterfaceArrayToCompetitionArray(source interface{}) []model.Competition {
+	var i = source
 	c, ok := i.([]model.Competition)
 	if !ok {
-		log.Printf("Unable to convert type (%s) to model.Competition", fmt.Sprintf("%T\n", intf))
+		log.Printf("Unable to convert type (%s) to model.Competition", fmt.Sprintf("%T\n", source))
 		return nil
 	}
-	return &c
+	return c
 }
 
-func convertCompetitionArrayPointerToCompetitionPointerArray(fetchedData *[]model.Competition) []*dto.Competition {
-	var result []*dto.Competition
-	if fetchedData != nil && len(*fetchedData) > 0 {
-		for _, d := range *fetchedData {
-			t := convertCompetitionPointerToCompetitionPointer(&d)
+func convertCompetitionArrayToCompetitionArray(fetchedData []model.Competition) []dto.Competition {
+	var result []dto.Competition
+	if fetchedData != nil && len(fetchedData) > 0 {
+		for _, d := range fetchedData {
+			t := convertCompetitionPointerToCompetitionPointer(d)
 			result = append(result, t)
 		}
 	}
 	return result
 }
 
-func convertInterfaceToCompetitionPointer(intf interface{}) *model.Competition {
-	var i = intf
+func convertInterfaceToCompetitionPointer(source interface{}) model.Competition {
+	var i = source
 	c, ok := i.(model.Competition)
 	if !ok {
-		log.Printf("Unable to convert type (%s) to model.Competition", fmt.Sprintf("%T\n", intf))
-		return nil
+		log.Printf("Unable to convert type (%s) to model.Competition", fmt.Sprintf("%T\n", source))
+		return model.Competition{}
 	}
-	return &c
+	return c
 }
 
-func convertInterfaceToCompetitionDetailPointer(intf interface{}) *model.CompetitionDetail {
-	var i = intf
+func convertInterfaceToCompetitionDetailPointer(source interface{}) model.CompetitionDetail {
+	var i = source
 	c, ok := i.(model.CompetitionDetail)
 	if !ok {
-		log.Printf("Unable to convert type (%s) to model.CompetitionDetail", fmt.Sprintf("%T\n", intf))
-		return nil
+		log.Printf("Unable to convert type (%s) to model.CompetitionDetail", fmt.Sprintf("%T\n", source))
+		return model.CompetitionDetail{}
 	}
-	return &c
+	return c
 }
 
-func convertCompetitionPointerToCompetitionPointer(fetchedData *model.Competition) *dto.Competition {
-	if fetchedData != nil && !reflect.ValueOf(&fetchedData).IsZero() {
-		return &dto.Competition{
+func convertCompetitionPointerToCompetitionPointer(fetchedData model.Competition) dto.Competition {
+	if !common.IsStructEmpty(fetchedData) {
+		return dto.Competition{
 			ID:   fetchedData.ID,
 			Name: fetchedData.Name,
 			Year: fetchedData.Year,
 			Type: fetchedData.ClimbingTypes[0],
 		}
 	}
-	return nil
+	return dto.Competition{}
 }
 
 func convertSectionResultAndSectionMapToSectionDto(sr model.SectionResult, s map[string]model.Section) dto.Section {

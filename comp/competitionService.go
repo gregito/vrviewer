@@ -12,68 +12,71 @@ import (
 const (
 	basePath                 string = "https://vr2.mhssz.hu/api/1.0.0/competitions/"
 	firstValidYear                  = 2018
-	valueTodisableYearFilter        = 0
+	valueToDisableYearFilter        = 0
 )
 
-func GetCompetition(id int64) (*dto.Competition, error) {
+func GetCompetition(id int64) (dto.Competition, error) {
 	result, err := webexec.ExecuteCall(fmt.Sprintf("%s%d", basePath, id), model.Competition{})
 	if err != nil {
 		log.Println(err)
-		return nil, err
+		return dto.Competition{}, err
 	}
 	iep := convertInterfaceToCompetitionPointer(result)
 	cp := convertCompetitionPointerToCompetitionPointer(iep)
 	return cp, nil
 }
 
-func ListAllCompetitions() ([]*dto.Competition, error) {
-	return ListCompetitionsByYearAndKind(valueTodisableYearFilter, nil)
+func ListAllCompetitionsSimplified() []dto.Competition {
+	var ct model.ClimbingType
+	return ListCompetitionsByYearAndKind(valueToDisableYearFilter, ct)
 }
 
-func ListCompetitionsByKind(kind *model.ClimbingType) ([]*dto.Competition, error) {
-	return ListCompetitionsByYearAndKind(valueTodisableYearFilter, kind)
+func ListCompetitionsByKind(kind model.ClimbingType) []dto.Competition {
+	return ListCompetitionsByYearAndKind(valueToDisableYearFilter, kind)
 }
 
-func ListCompetitionsByYear(year int64) ([]*dto.Competition, error) {
-	return ListCompetitionsByYearAndKind(year, nil)
+func ListCompetitionsByYear(year int64) []dto.Competition {
+	var ct model.ClimbingType
+	return ListCompetitionsByYearAndKind(year, ct)
 }
 
-func GetCompetitionResultsByCompetitionId(id int64) (*model.CompetitionDetail, error) {
+func GetCompetitionResultsByCompetitionId(id int64) (model.CompetitionDetail, error) {
 	resp, err := webexec.ExecuteCall(fmt.Sprintf("%s%d/results", basePath, id), model.CompetitionDetail{})
 	if err != nil {
 		log.Println(err)
-		return nil, err
+		return model.CompetitionDetail{}, err
 	}
 	result := convertInterfaceToCompetitionDetailPointer(resp)
 	return result, nil
 }
 
-func ListCompetitionsByYearAndKind(year int64, kind *model.ClimbingType) ([]*dto.Competition, error) {
+func ListCompetitionsByYearAndKind(year int64, kind model.ClimbingType) []dto.Competition {
 	resp, err := webexec.ExecuteCall(basePath, []model.Competition{})
 	if err != nil {
 		log.Println(err)
-		return nil, err
+		var empty []dto.Competition
+		return empty
 	}
-	iaep := convertInterfaceArrayToCompetitionPointerArray(resp)
-	cp := convertCompetitionArrayPointerToCompetitionPointerArray(iaep)
+	iaep := convertInterfaceArrayToCompetitionArray(resp)
+	cp := convertCompetitionArrayToCompetitionArray(iaep)
 	result := filterCompetitions(cp, year, kind)
-	return result, nil
+	return result
 }
 
-func filterCompetitions(comps []*dto.Competition, year int64, kind *model.ClimbingType) []*dto.Competition {
-	result := filterCompetitionsByYear(comps, year)
-	if kind == nil || (*kind != model.Boulder && *kind != model.Lead) {
+func filterCompetitions(comps []dto.Competition, year int64, kind model.ClimbingType) []dto.Competition {
+	result := collectCompetitionsByYear(comps, year)
+	if kind != model.Boulder && kind != model.Lead {
 		return result
 	}
-	return filterCompetitionsByType(result, kind)
+	return collectCompetitionsByType(result, kind)
 }
 
-func filterCompetitionsByYear(comps []*dto.Competition, year int64) []*dto.Competition {
-	if year != valueTodisableYearFilter {
+func collectCompetitionsByYear(comps []dto.Competition, year int64) []dto.Competition {
+	var result []dto.Competition
+	if year != valueToDisableYearFilter {
 		if year < firstValidYear {
-			return []*dto.Competition{}
+			return result
 		}
-		var result []*dto.Competition
 		for _, c := range comps {
 			if c.Year == year {
 				result = append(result, c)
@@ -81,7 +84,6 @@ func filterCompetitionsByYear(comps []*dto.Competition, year int64) []*dto.Compe
 		}
 		return result
 	} else {
-		var result []*dto.Competition
 		for _, c := range comps {
 			if c.Year >= firstValidYear {
 				result = append(result, c)
@@ -91,10 +93,10 @@ func filterCompetitionsByYear(comps []*dto.Competition, year int64) []*dto.Compe
 	}
 }
 
-func filterCompetitionsByType(comps []*dto.Competition, kind *model.ClimbingType) []*dto.Competition {
-	var result []*dto.Competition
+func collectCompetitionsByType(comps []dto.Competition, kind model.ClimbingType) []dto.Competition {
+	var result []dto.Competition
 	for _, c := range comps {
-		if c.Type == *kind {
+		if c.Type == kind {
 			result = append(result, c)
 		}
 	}
