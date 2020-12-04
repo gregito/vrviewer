@@ -1,5 +1,5 @@
 GOFILES_NOVENDOR = $(shell find . -type f -name '*.go' -not -path "./vendor/*" -not -path "./.git/*")
-BINARY=vrr
+BINARY=vrviewer
 
 build: build-darwin build-linux build-windows
 
