@@ -1,7 +1,7 @@
 package metrics
 
 import (
-	"log"
+	"github.com/gregito/vrviewer/comp/log"
 	"strconv"
 	"time"
 )

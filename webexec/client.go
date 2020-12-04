@@ -3,7 +3,7 @@ package webexec
 import (
 	"crypto/tls"
 	"fmt"
-	"log"
+	"github.com/gregito/vrviewer/comp/log"
 	"net/http"
 )
 

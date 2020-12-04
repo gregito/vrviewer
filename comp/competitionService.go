@@ -2,7 +2,7 @@ package comp
 
 import (
 	"fmt"
-	"log"
+	"github.com/gregito/vrviewer/comp/log"
 	"time"
 
 	"github.com/gregito/vrviewer/comp/dto"

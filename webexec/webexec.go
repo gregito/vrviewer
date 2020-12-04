@@ -3,7 +3,7 @@ package webexec
 import (
 	"encoding/json"
 	"fmt"
-	"log"
+	"github.com/gregito/vrviewer/comp/log"
 	"net/http"
 	"time"
 

@@ -14,24 +14,28 @@ import (
 var competitionResults []model.CompetitionDetail
 var singleFetchDurations []time.Duration
 var totalFetchTime time.Duration
+var args []string
 
 func init() {
+	args = os.Args[1:]
 	fetchData()
 }
 
 func main() {
-	args := os.Args[1:]
 	listStuff(competitionResults, args)
 	metrics.ShowMeasurements(singleFetchDurations, totalFetchTime)
 }
 
 func fetchData() {
+	fmt.Println("Fetching competition data...")
 	start := time.Now()
 	defer func() {
 		totalFetchTime = time.Since(start)
 	}()
+	fmt.Println("Fetching competitions")
 	competitions, dur := comp.ListAllCompetitionsSimplified()
 	singleFetchDurations = append(singleFetchDurations, dur)
+	fmt.Println("About to collect all competition results. This could take a wile depending on your network bandwidth.")
 	for _, competition := range competitions {
 		res, err, dur := comp.GetCompetitionResultsByCompetitionId(competition.ID)
 		singleFetchDurations = append(singleFetchDurations, dur)
@@ -39,9 +43,11 @@ func fetchData() {
 			competitionResults = append(competitionResults, res)
 		}
 	}
+	fmt.Println("Fetching done.")
 }
 
 func listStuff(competitionResults []model.CompetitionDetail, names []string) {
+	fmt.Println("")
 	for i, name := range names {
 		fmt.Println("Name: " + name)
 
