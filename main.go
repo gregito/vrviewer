@@ -49,16 +49,18 @@ func fetchData() {
 func listStuff(competitionResults []model.CompetitionDetail, names []string) {
 	fmt.Println("")
 	for i, name := range names {
-		fmt.Println("Name: " + name)
-
 		competitorResults := comp.GetCompetitorResults(name, competitionResults)
-
-		for _, result := range competitorResults {
-			fmt.Printf("%s - %s\n", result.CompetitionName, result.Type)
-			printSections(result.SectionResults)
-		}
-		if i < len(names)-1 {
-			fmt.Println("------------------")
+		if competitorResults != nil && len(competitorResults) > 0 {
+			fmt.Println("Name: " + name)
+			for _, result := range competitorResults {
+				fmt.Printf("%s - %s\n", result.CompetitionName, result.Type)
+				printSections(result.SectionResults)
+			}
+			if i < len(names)-1 {
+				fmt.Println("------------------")
+			}
+		} else {
+			fmt.Println("No competitor has been found with name: " + name)
 		}
 	}
 
