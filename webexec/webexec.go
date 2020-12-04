@@ -5,9 +5,16 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/mitchellh/mapstructure"
 )
+
+func MeasureExecuteCall(path string, kind interface{}) (interface{}, error, time.Duration) {
+	start := time.Now()
+	i, err := ExecuteCall(path, kind)
+	return i, err, time.Since(start)
+}
 
 func ExecuteCall(path string, kind interface{}) (interface{}, error) {
 	log.Println("HTTP request call has been requested")

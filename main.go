@@ -4,31 +4,44 @@ import (
 	"fmt"
 	"github.com/gregito/vrviewer/comp"
 	"github.com/gregito/vrviewer/comp/dto"
+	"github.com/gregito/vrviewer/comp/metrics"
 	"github.com/gregito/vrviewer/comp/model"
+	"log"
 	"strconv"
 	"time"
 )
 
+var competitionResults []model.CompetitionDetail
+var singleFetchDurations []time.Duration
+var totalFetchTime time.Duration
+
+func init() {
+	fetchData()
+}
+
 func main() {
+	listStuff(competitionResults, "Mészáros Gergely")
+	showMeasurements()
+}
+
+func fetchData() {
 	start := time.Now()
 	defer func() {
-		fmt.Println("Execution Time: ", time.Since(start))
+		totalFetchTime = time.Since(start)
 	}()
-
-	competitions := comp.ListAllCompetitionsSimplified()
-
-	var competitionResults []model.CompetitionDetail
+	competitions, dur := comp.ListAllCompetitionsSimplified()
+	singleFetchDurations = append(singleFetchDurations, dur)
 	for _, competition := range competitions {
-		res, err := comp.GetCompetitionResultsByCompetitionId(competition.ID)
+		res, err, dur := comp.GetCompetitionResultsByCompetitionId(competition.ID)
+		singleFetchDurations = append(singleFetchDurations, dur)
 		if err == nil {
 			competitionResults = append(competitionResults, res)
 		}
 	}
-	listStuff(competitionResults, "Mészáros Gergely")
 }
 
 func listStuff(competitionResults []model.CompetitionDetail, names ...string) {
-	for _, name := range names {
+	for i, name := range names {
 		fmt.Println("Name: " + name)
 
 		competitorResults := comp.GetCompetitorResults(name, competitionResults)
@@ -37,7 +50,9 @@ func listStuff(competitionResults []model.CompetitionDetail, names ...string) {
 			fmt.Printf("%s - %s\n", result.CompetitionName, result.Type)
 			printSections(result.SectionResults)
 		}
-		fmt.Println("------------------")
+		if i < len(names)-1 {
+			fmt.Println("------------------")
+		}
 	}
 
 }
@@ -58,4 +73,14 @@ func printSections(sr []dto.Section) {
 		}
 		fmt.Println()
 	}
+}
+
+func showMeasurements() {
+	log.Println("--------- API call measurements ---------")
+	log.Println("Total measured call amount: " + strconv.Itoa(len(singleFetchDurations)))
+	log.Println("Fetching all results took: " + totalFetchTime.String())
+	log.Println("Longest fetching took: " + metrics.GetMaxDuration(singleFetchDurations).String())
+	log.Println("Shortest fetching took: " + metrics.GetMinDuration(singleFetchDurations).String())
+	log.Println("Average fetching took: " + metrics.GetAverageDuration(singleFetchDurations).String())
+	log.Println("-----------------------------------------")
 }
