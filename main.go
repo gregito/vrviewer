@@ -6,7 +6,7 @@ import (
 	"github.com/gregito/vrviewer/comp/dto"
 	"github.com/gregito/vrviewer/comp/metrics"
 	"github.com/gregito/vrviewer/comp/model"
-	"log"
+	"os"
 	"strconv"
 	"time"
 )
@@ -20,8 +20,9 @@ func init() {
 }
 
 func main() {
-	listStuff(competitionResults, "Mészáros Gergely")
-	showMeasurements()
+	args := os.Args[1:]
+	listStuff(competitionResults, args)
+	metrics.ShowMeasurements(singleFetchDurations, totalFetchTime)
 }
 
 func fetchData() {
@@ -40,7 +41,7 @@ func fetchData() {
 	}
 }
 
-func listStuff(competitionResults []model.CompetitionDetail, names ...string) {
+func listStuff(competitionResults []model.CompetitionDetail, names []string) {
 	for i, name := range names {
 		fmt.Println("Name: " + name)
 
@@ -73,14 +74,4 @@ func printSections(sr []dto.Section) {
 		}
 		fmt.Println()
 	}
-}
-
-func showMeasurements() {
-	log.Println("--------- API call measurements ---------")
-	log.Println("Total measured call amount: " + strconv.Itoa(len(singleFetchDurations)))
-	log.Println("Fetching all results took: " + totalFetchTime.String())
-	log.Println("Longest fetching took: " + metrics.GetMaxDuration(singleFetchDurations).String())
-	log.Println("Shortest fetching took: " + metrics.GetMinDuration(singleFetchDurations).String())
-	log.Println("Average fetching took: " + metrics.GetAverageDuration(singleFetchDurations).String())
-	log.Println("-----------------------------------------")
 }

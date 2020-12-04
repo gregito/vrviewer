@@ -14,7 +14,7 @@ func GetCompetitorResults(name string, cds []model.CompetitionDetail) []dto.Comp
 	for _, cd := range cds {
 		wg.Add(1)
 		go func(cd model.CompetitionDetail) {
-			subResult := GetCompetitorResultInCompetitionDetail(name, cd)
+			subResult := getCompetitorResultInCompetitionDetail(name, cd)
 			if !common.IsStructEmpty(subResult) {
 				result = append(result, subResult)
 			}
@@ -25,14 +25,13 @@ func GetCompetitorResults(name string, cds []model.CompetitionDetail) []dto.Comp
 	return result
 }
 
-func GetCompetitorResultInCompetitionDetail(name string, cd model.CompetitionDetail) dto.CompetitorResult {
+func getCompetitorResultInCompetitionDetail(name string, cd model.CompetitionDetail) dto.CompetitorResult {
 	result := findResultOfCompetitor(name, cd)
 	sectionResult := findSectionResultOfCompetitor(name, result)
 	var sections []dto.Section
-	climbingType := cd.Partitions[0].ClimbingType
-	// TODO: filter out competitions where one has no results hence probably haven't participate
+	climbingType := cd.Partitions[0].ClimbingType // hopefully, it won't break since MHSSZ doesn't organize competitions with multiple styles of climbing at the same time
 	for _, s := range sectionResult {
-		if s.Points > 0 {
+		if isValidResult(climbingType, s) {
 			sections = append(sections, convertSectionResultAndSectionMapToSectionDto(s, cd.Sections, climbingType))
 		}
 	}
@@ -46,6 +45,17 @@ func GetCompetitorResultInCompetitionDetail(name string, cd model.CompetitionDet
 		}
 	}
 	return dto.CompetitorResult{}
+}
+
+func isValidResult(t model.ClimbingType, sr model.SectionResult) bool {
+	if model.Lead == t {
+		return sr.Points > 0
+	}
+	return !isInvalidBoulderResult(sr)
+}
+
+func isInvalidBoulderResult(sr model.SectionResult) bool {
+	return sr.Tops == 0 && sr.TopTries == 0 && sr.Zones == 0 && sr.ZoneTries == 0
 }
 
 func findResultOfCompetitor(name string, cd model.CompetitionDetail) model.Result {

@@ -1,8 +1,22 @@
 package metrics
 
-import "time"
+import (
+	"log"
+	"strconv"
+	"time"
+)
 
-func GetMaxDuration(durations []time.Duration) time.Duration {
+func ShowMeasurements(singleFetchDurations []time.Duration, totalFetchTime time.Duration) {
+	log.Println("--------- API call measurements ---------")
+	log.Println("Total measured call amount: " + strconv.Itoa(len(singleFetchDurations)))
+	log.Println("Fetching all results took: " + totalFetchTime.String())
+	log.Println("Longest fetching took: " + getMaxDuration(singleFetchDurations).String())
+	log.Println("Shortest fetching took: " + getMinDuration(singleFetchDurations).String())
+	log.Println("Average fetching took: " + getAverageDuration(singleFetchDurations).String())
+	log.Println("-----------------------------------------")
+}
+
+func getMaxDuration(durations []time.Duration) time.Duration {
 	max := durations[0]
 	for _, duration := range durations {
 		if duration > max {
@@ -12,7 +26,7 @@ func GetMaxDuration(durations []time.Duration) time.Duration {
 	return max
 }
 
-func GetMinDuration(durations []time.Duration) time.Duration {
+func getMinDuration(durations []time.Duration) time.Duration {
 	min := durations[0]
 	for _, duration := range durations {
 		if duration < min {
@@ -22,7 +36,7 @@ func GetMinDuration(durations []time.Duration) time.Duration {
 	return min
 }
 
-func GetAverageDuration(durations []time.Duration) time.Duration {
+func getAverageDuration(durations []time.Duration) time.Duration {
 	avg := int64(durations[0] / time.Millisecond)
 	for i := 1; i < len(durations); i++ {
 		avg = avg + int64(durations[i]/time.Millisecond)
