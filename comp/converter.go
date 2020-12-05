@@ -22,14 +22,14 @@ func convertCompetitionArrayToCompetitionArray(fetchedData []model.Competition) 
 	var result []dto.Competition
 	if fetchedData != nil && len(fetchedData) > 0 {
 		for _, d := range fetchedData {
-			t := convertCompetitionPointerToCompetitionPointer(d)
+			t := convertCompetitionModelToCompetitionDto(d)
 			result = append(result, t)
 		}
 	}
 	return result
 }
 
-func convertInterfaceToCompetitionPointer(source interface{}) model.Competition {
+func convertInterfaceToCompetition(source interface{}) model.Competition {
 	var i = source
 	c, ok := i.(model.Competition)
 	if !ok {
@@ -39,7 +39,7 @@ func convertInterfaceToCompetitionPointer(source interface{}) model.Competition 
 	return c
 }
 
-func convertInterfaceToCompetitionDetailPointer(source interface{}) model.CompetitionDetail {
+func convertInterfaceToCompetitionDetail(source interface{}) model.CompetitionDetail {
 	var i = source
 	c, ok := i.(model.CompetitionDetail)
 	if !ok {
@@ -49,7 +49,7 @@ func convertInterfaceToCompetitionDetailPointer(source interface{}) model.Compet
 	return c
 }
 
-func convertCompetitionPointerToCompetitionPointer(fetchedData model.Competition) dto.Competition {
+func convertCompetitionModelToCompetitionDto(fetchedData model.Competition) dto.Competition {
 	if !common.IsStructEmpty(fetchedData) {
 		return dto.Competition{
 			ID:   fetchedData.ID,

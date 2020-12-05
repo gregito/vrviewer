@@ -22,8 +22,8 @@ func GetCompetition(id int64) (dto.Competition, error, time.Duration) {
 		log.Println(err)
 		return dto.Competition{}, err, dur
 	}
-	iep := convertInterfaceToCompetitionPointer(result)
-	cp := convertCompetitionPointerToCompetitionPointer(iep)
+	iep := convertInterfaceToCompetition(result)
+	cp := convertCompetitionModelToCompetitionDto(iep)
 	return cp, nil, dur
 }
 
@@ -47,7 +47,7 @@ func GetCompetitionResultsByCompetitionId(id int64) (model.CompetitionDetail, er
 		log.Println(err)
 		return model.CompetitionDetail{}, err, dur
 	}
-	result := convertInterfaceToCompetitionDetailPointer(resp)
+	result := convertInterfaceToCompetitionDetail(resp)
 	return result, nil, dur
 }
 

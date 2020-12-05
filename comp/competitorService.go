@@ -1,7 +1,6 @@
 package comp
 
 import (
-	"github.com/gregito/vrviewer/comp/common"
 	"github.com/gregito/vrviewer/comp/dto"
 	"github.com/gregito/vrviewer/comp/model"
 	"strconv"
@@ -15,8 +14,9 @@ func GetCompetitorResults(name string, cds []model.CompetitionDetail) []dto.Comp
 		wg.Add(1)
 		go func(cd model.CompetitionDetail) {
 			subResult := getCompetitorResultInCompetitionDetail(name, cd)
-			if !common.IsStructEmpty(subResult) {
-				result = append(result, subResult)
+			if subResult != nil {
+				subResult.CompetitionFinished = isCompetitionFinished(cd.Status)
+				result = append(result, *subResult)
 			}
 			wg.Done()
 		}(cd)
@@ -25,7 +25,7 @@ func GetCompetitorResults(name string, cds []model.CompetitionDetail) []dto.Comp
 	return result
 }
 
-func getCompetitorResultInCompetitionDetail(name string, cd model.CompetitionDetail) dto.CompetitorResult {
+func getCompetitorResultInCompetitionDetail(name string, cd model.CompetitionDetail) *dto.CompetitorResult {
 	result := findResultOfCompetitor(name, cd)
 	sectionResult := findSectionResultOfCompetitor(name, result)
 	var sections []dto.Section
@@ -36,7 +36,7 @@ func getCompetitorResultInCompetitionDetail(name string, cd model.CompetitionDet
 		}
 	}
 	if len(sections) > 0 {
-		return dto.CompetitorResult{
+		return &dto.CompetitorResult{
 			CompetitionName: cd.Name,
 			Type:            climbingType,
 			Name:            name,
@@ -44,7 +44,11 @@ func getCompetitorResultInCompetitionDetail(name string, cd model.CompetitionDet
 			SectionResults:  sections,
 		}
 	}
-	return dto.CompetitorResult{}
+	return nil
+}
+
+func isCompetitionFinished(status string) bool {
+	return status == "CLOSED"
 }
 
 func isValidResult(t model.ClimbingType, sr model.SectionResult) bool {

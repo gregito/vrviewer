@@ -65,7 +65,9 @@ func listStuff(competitionResults []model.CompetitionDetail, names []string) {
 		if competitorResults != nil && len(competitorResults) > 0 {
 			fmt.Println("Name: " + name)
 			for _, result := range competitorResults {
+				fmt.Println("------------------")
 				fmt.Printf("%s - %s\n", result.CompetitionName, result.Type)
+				printPosition(result)
 				printSections(result.SectionResults)
 			}
 			if i < len(names)-1 {
@@ -80,7 +82,7 @@ func listStuff(competitionResults []model.CompetitionDetail, names []string) {
 
 func printSections(sr []dto.Section) {
 	for _, r := range sr {
-		fmt.Println(r.Name + ":")
+		fmt.Println("\n" + r.Name + ":")
 		if r.Points > 0 {
 			// in case of lead climbing competitions only the points that matters therefore all other fields should be empty
 			fmt.Println("Points: \t" + strconv.FormatInt(r.Points, 10))
@@ -94,6 +96,16 @@ func printSections(sr []dto.Section) {
 		}
 		fmt.Println()
 	}
+}
+
+func printPosition(result dto.CompetitorResult) {
+	ps := " position"
+	if result.CompetitionFinished {
+		ps = "Final" + ps
+	} else {
+		ps = "Current" + ps
+	}
+	fmt.Printf("%s: %s\n", ps, result.CurrentPosition)
 }
 
 func getProgressBar(curr int, size int) {
