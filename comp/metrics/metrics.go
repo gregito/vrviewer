@@ -7,6 +7,11 @@ import (
 )
 
 func ShowMeasurements(singleFetchDurations []time.Duration, totalFetchTime time.Duration) {
+	if singleFetchDurations == nil {
+		log.Println("-- No measured execution has happened --")
+		return
+	}
+	log.Println("--------- API call measurements ---------")
 	log.Println("--------- API call measurements ---------")
 	log.Println("Total measured call amount: " + strconv.Itoa(len(singleFetchDurations)))
 	log.Println("Fetching all results took: " + totalFetchTime.String())
