@@ -16,29 +16,9 @@ const (
 	valueToDisableYearFilter        = 0
 )
 
-func GetCompetition(id int64) (dto.Competition, error, time.Duration) {
-	result, err, dur := webexec.MeasureExecuteCall(fmt.Sprintf("%s%d", basePath, id), model.Competition{})
-	if err != nil {
-		log.Println(err)
-		return dto.Competition{}, err, dur
-	}
-	iep := convertInterfaceToCompetition(result)
-	cp := convertCompetitionModelToCompetitionDto(iep)
-	return cp, nil, dur
-}
-
 func ListAllCompetitionsSimplified() ([]dto.Competition, time.Duration) {
 	var ct model.ClimbingType
 	return ListCompetitionsByYearAndKind(valueToDisableYearFilter, ct)
-}
-
-func ListCompetitionsByKind(kind model.ClimbingType) ([]dto.Competition, time.Duration) {
-	return ListCompetitionsByYearAndKind(valueToDisableYearFilter, kind)
-}
-
-func ListCompetitionsByYear(year int64) ([]dto.Competition, time.Duration) {
-	var ct model.ClimbingType
-	return ListCompetitionsByYearAndKind(year, ct)
 }
 
 func GetCompetitionResultsByCompetitionId(id int64) (model.CompetitionDetail, error, time.Duration) {
