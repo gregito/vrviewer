@@ -14,16 +14,27 @@ import (
 var competitionResults []model.CompetitionDetail
 var singleFetchDurations []time.Duration
 var totalFetchTime time.Duration
+var invalidStart bool
 var args []string
 
 func init() {
 	args = os.Args[1:]
-	fetchData()
+	if args != nil && len(args) != 0 {
+		fetchData()
+		invalidStart = false
+	} else {
+		invalidStart = true
+	}
 }
 
 func main() {
-	listStuff(competitionResults, args)
-	metrics.ShowMeasurements(singleFetchDurations, totalFetchTime)
+	if invalidStart {
+		fmt.Println("No competitor name has provided.")
+		os.Exit(2)
+	} else {
+		listStuff(competitionResults, args)
+		metrics.ShowMeasurements(singleFetchDurations, totalFetchTime)
+	}
 }
 
 func fetchData() {
@@ -36,18 +47,19 @@ func fetchData() {
 	competitions, dur := comp.ListAllCompetitionsSimplified()
 	singleFetchDurations = append(singleFetchDurations, dur)
 	fmt.Println("About to collect all competition results. This could take a wile depending on your network bandwidth.")
-	for _, competition := range competitions {
+	for i, competition := range competitions {
+		getProgressBar(i, len(competitions))
 		res, err, dur := comp.GetCompetitionResultsByCompetitionId(competition.ID)
 		singleFetchDurations = append(singleFetchDurations, dur)
 		if err == nil {
 			competitionResults = append(competitionResults, res)
 		}
 	}
-	fmt.Println("Fetching done.")
+	fmt.Println("\nFetching done.")
 }
 
 func listStuff(competitionResults []model.CompetitionDetail, names []string) {
-	fmt.Println("")
+	fmt.Printf("\n")
 	for i, name := range names {
 		competitorResults := comp.GetCompetitorResults(name, competitionResults)
 		if competitorResults != nil && len(competitorResults) > 0 {
@@ -82,4 +94,16 @@ func printSections(sr []dto.Section) {
 		}
 		fmt.Println()
 	}
+}
+
+func getProgressBar(curr int, size int) {
+	pb := "["
+	for i := 0; i < curr; i++ {
+		pb = pb + "|"
+	}
+	for i := curr; i < size-1; i++ {
+		pb = pb + "-"
+	}
+	pb = pb + "]"
+	fmt.Printf("\r%s", pb)
 }
