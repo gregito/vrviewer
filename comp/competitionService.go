@@ -2,6 +2,7 @@ package comp
 
 import (
 	"fmt"
+	"github.com/gregito/vrviewer/comp/loader"
 	"github.com/gregito/vrviewer/comp/log"
 	"time"
 
@@ -21,8 +22,24 @@ func ListAllCompetitionsSimplified() ([]dto.Competition, time.Duration) {
 	return ListCompetitionsByYearAndKind(valueToDisableYearFilter, ct)
 }
 
+func GetCompetitionResultsFromFileByCompetitionId(id int64) (model.CompetitionDetail, error) {
+	return loader.CompetitionDetailFromFile(id)
+}
+
+func ListAllCompetitionSimplifiedFromFile() ([]dto.Competition, error) {
+	return loader.CompetitionsFromFile()
+}
+
+func SaveSimplifiedCompetitionsIntoFile(comps []dto.Competition) error {
+	return loader.WriteCompetitionsIntoFile(comps)
+}
+
+func SaveCompetitionDetailIntoFile(competitionId int64, comp model.CompetitionDetail) error {
+	return loader.WriteCompetitionDetailIntoFile(competitionId, comp)
+}
+
 func GetCompetitionResultsByCompetitionId(id int64) (model.CompetitionDetail, error, time.Duration) {
-	resp, err, dur := webexec.MeasureExecuteCall(fmt.Sprintf("%s%d/results", basePath, id), model.CompetitionDetail{})
+	resp, err, dur := webexec.MeasuredExecuteCall(fmt.Sprintf("%s%d/results", basePath, id), model.CompetitionDetail{})
 	if err != nil {
 		log.Println(err)
 		return model.CompetitionDetail{}, err, dur
@@ -32,7 +49,7 @@ func GetCompetitionResultsByCompetitionId(id int64) (model.CompetitionDetail, er
 }
 
 func ListCompetitionsByYearAndKind(year int64, kind model.ClimbingType) ([]dto.Competition, time.Duration) {
-	resp, err, dur := webexec.MeasureExecuteCall(basePath, []model.Competition{})
+	resp, err, dur := webexec.MeasuredExecuteCall(basePath, []model.Competition{})
 	if err != nil {
 		log.Println(err)
 		var empty []dto.Competition

@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"github.com/gregito/vrviewer/comp"
 	"github.com/gregito/vrviewer/comp/dto"
+	"github.com/gregito/vrviewer/comp/loader"
+	"github.com/gregito/vrviewer/comp/log"
 	"github.com/gregito/vrviewer/comp/metrics"
 	"github.com/gregito/vrviewer/comp/model"
 	"os"
@@ -20,6 +22,7 @@ var args []string
 func init() {
 	args = os.Args[1:]
 	if args != nil && len(args) != 0 {
+		loader.CreateTempFolderIfNotExists()
 		fetchData()
 		invalidStart = false
 	} else {
@@ -40,18 +43,44 @@ func main() {
 func fetchData() {
 	fmt.Println("Fetching competition data...")
 	start := time.Now()
+	var err error
 	defer func() {
 		totalFetchTime = time.Since(start)
 	}()
 	fmt.Println("Fetching competitions")
-	competitions, dur := comp.ListAllCompetitionsSimplified()
-	singleFetchDurations = append(singleFetchDurations, dur)
+	needsFileWrite := false
+	competitions, err := comp.ListAllCompetitionSimplifiedFromFile()
+	if competitions == nil || len(competitions) == 0 || err != nil {
+		needsFileWrite = true
+		var dur time.Duration
+		competitions, dur = comp.ListAllCompetitionsSimplified()
+		singleFetchDurations = appendDuration(singleFetchDurations, dur)
+	}
+	if needsFileWrite {
+		err = comp.SaveSimplifiedCompetitionsIntoFile(competitions)
+		if err != nil {
+			log.Printf("Unable to write simplified competitions into file!: %s\n", err)
+		}
+	}
 	fmt.Println("About to collect all competition results. This could take a wile depending on your network bandwidth.")
 	for i, competition := range competitions {
 		getProgressBar(i, len(competitions))
-		res, err, dur := comp.GetCompetitionResultsByCompetitionId(competition.ID)
-		singleFetchDurations = append(singleFetchDurations, dur)
+		needsFileWrite = false
+		var res model.CompetitionDetail
+		res, err = comp.GetCompetitionResultsFromFileByCompetitionId(competition.ID)
+		if err != nil {
+			var dur time.Duration
+			res, err, dur = comp.GetCompetitionResultsByCompetitionId(competition.ID)
+			singleFetchDurations = appendDuration(singleFetchDurations, dur)
+			needsFileWrite = true
+		}
 		if err == nil {
+			if needsFileWrite {
+				err = comp.SaveCompetitionDetailIntoFile(competition.ID, res)
+				if err != nil {
+					log.Printf("Unable to write competition detail into file!: %s\n", err)
+				}
+			}
 			competitionResults = append(competitionResults, res)
 		}
 	}
@@ -118,4 +147,11 @@ func getProgressBar(curr int, size int) {
 	}
 	pb = pb + "]"
 	fmt.Printf("\r%s", pb)
+}
+
+func appendDuration(orig []time.Duration, new time.Duration) []time.Duration {
+	if new > 0 {
+		return append(orig, new)
+	}
+	return orig
 }

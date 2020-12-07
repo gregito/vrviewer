@@ -29,16 +29,6 @@ func convertCompetitionArrayToCompetitionArray(fetchedData []model.Competition) 
 	return result
 }
 
-func convertInterfaceToCompetition(source interface{}) model.Competition {
-	var i = source
-	c, ok := i.(model.Competition)
-	if !ok {
-		log.Printf("Unable to convert type (%s) to model.Competition", fmt.Sprintf("%T\n", source))
-		return model.Competition{}
-	}
-	return c
-}
-
 func convertInterfaceToCompetitionDetail(source interface{}) model.CompetitionDetail {
 	var i = source
 	c, ok := i.(model.CompetitionDetail)

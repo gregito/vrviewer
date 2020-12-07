@@ -10,7 +10,7 @@ import (
 	"github.com/mitchellh/mapstructure"
 )
 
-func MeasureExecuteCall(path string, kind interface{}) (interface{}, error, time.Duration) {
+func MeasuredExecuteCall(path string, kind interface{}) (interface{}, error, time.Duration) {
 	start := time.Now()
 	i, err := ExecuteCall(path, kind)
 	return i, err, time.Since(start)

@@ -12,7 +12,6 @@ func ShowMeasurements(singleFetchDurations []time.Duration, totalFetchTime time.
 		return
 	}
 	log.Println("--------- API call measurements ---------")
-	log.Println("--------- API call measurements ---------")
 	log.Println("Total measured call amount: " + strconv.Itoa(len(singleFetchDurations)))
 	log.Println("Fetching all results took: " + totalFetchTime.String())
 	log.Println("Longest fetching took: " + getMaxDuration(singleFetchDurations).String())
