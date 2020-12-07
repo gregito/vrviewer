@@ -127,12 +127,20 @@ func isRenewalNeeded(cacheProperty dto.CacheFile) bool {
 func getTempFolderPath() string {
 	tempDirEnvVar := os.Getenv(manualTempDirPathKey)
 	if len(tempDirEnvVar) > 0 {
-		if tempDirEnvVar[len(tempDirEnvVar)-1:] != string(os.PathSeparator) {
+		if isPathEndsWithPathSeparator(tempDirEnvVar) {
 			return tempDirEnvVar + string(os.PathSeparator)
 		}
 		return tempDirEnvVar
 	}
+	osTempDir := os.TempDir()
+	if isPathEndsWithPathSeparator(osTempDir) {
+		return osTempDir + string(os.PathSeparator) + vrvTmpDirName
+	}
 	return os.TempDir() + vrvTmpDirName
+}
+
+func isPathEndsWithPathSeparator(path string) bool {
+	return path[len(path)-1:] == string(os.PathSeparator)
 }
 
 func isTempFolderDoesNotExists() bool {
