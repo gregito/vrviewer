@@ -29,7 +29,7 @@ func getCompetitorResultInCompetitionDetail(name string, cd model.CompetitionDet
 	result := findResultOfCompetitor(name, cd)
 	sectionResult := findSectionResultOfCompetitor(name, result)
 	var sections []dto.Section
-	climbingType := cd.Partitions[0].ClimbingType // hopefully, it won't break since MHSSZ doesn't organize competitions with multiple styles of climbing at the same time
+	climbingType := cd.Partitions[0].ClimbingType // TODO: handle this fragile piece of code
 	for _, s := range sectionResult {
 		if isValidResult(climbingType, s) {
 			sections = append(sections, convertSectionResultAndSectionMapToSectionDto(s, cd.Sections, climbingType))

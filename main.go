@@ -36,21 +36,49 @@ func main() {
 		os.Exit(2)
 	} else {
 		listStuff(competitionResults, args)
-		metrics.ShowMeasurements(singleFetchDurations, totalFetchTime)
+		metrics.ShowMeasurementsIfHaveAny(singleFetchDurations, totalFetchTime)
 	}
 }
 
 func fetchData() {
 	fmt.Println("Fetching competition data...")
 	start := time.Now()
-	var err error
 	defer func() {
 		totalFetchTime = time.Since(start)
 	}()
+	fetchCompetitionDetails(fetchCompetitions())
+	fmt.Println("\nFetching done.")
+}
+
+func fetchCompetitionDetails(competitions []dto.Competition) {
+	cache, err, isRenewalNeeded := loader.CompetitionDetailsFromFile()
+	if err != nil || isRenewalNeeded {
+		fetched := make(map[int64]model.CompetitionDetail)
+		fmt.Println("About to collect all competition results. This could take a wile depending on your network bandwidth.")
+		for i, competition := range competitions {
+			getProgressBar(i, len(competitions))
+			res, err, dur := comp.GetCompetitionResultsByCompetitionId(competition.ID)
+			singleFetchDurations = appendDuration(singleFetchDurations, dur)
+			if err == nil {
+				fetched[competition.ID] = res
+				competitionResults = append(competitionResults, fetched[competition.ID])
+			}
+		}
+		if err := loader.WriteCompetitionDetailsIntoFile(fetched); err != nil {
+			log.Printf("Unable to write competition details into file!: %s\n", err)
+		}
+	} else {
+		for k := range cache {
+			competitionResults = append(competitionResults, cache[k])
+		}
+	}
+}
+
+func fetchCompetitions() []dto.Competition {
 	fmt.Println("Fetching competitions")
 	needsFileWrite := false
-	competitions, err := comp.ListAllCompetitionSimplifiedFromFile()
-	if competitions == nil || len(competitions) == 0 || err != nil {
+	competitions, err, needsRenewal := comp.ListAllCompetitionSimplifiedFromFile()
+	if isCompetitionEmpty(competitions) || err != nil || needsRenewal {
 		needsFileWrite = true
 		var dur time.Duration
 		competitions, dur = comp.ListAllCompetitionsSimplified()
@@ -62,29 +90,11 @@ func fetchData() {
 			log.Printf("Unable to write simplified competitions into file!: %s\n", err)
 		}
 	}
-	fmt.Println("About to collect all competition results. This could take a wile depending on your network bandwidth.")
-	for i, competition := range competitions {
-		getProgressBar(i, len(competitions))
-		needsFileWrite = false
-		var res model.CompetitionDetail
-		res, err = comp.GetCompetitionResultsFromFileByCompetitionId(competition.ID)
-		if err != nil {
-			var dur time.Duration
-			res, err, dur = comp.GetCompetitionResultsByCompetitionId(competition.ID)
-			singleFetchDurations = appendDuration(singleFetchDurations, dur)
-			needsFileWrite = true
-		}
-		if err == nil {
-			if needsFileWrite {
-				err = comp.SaveCompetitionDetailIntoFile(competition.ID, res)
-				if err != nil {
-					log.Printf("Unable to write competition detail into file!: %s\n", err)
-				}
-			}
-			competitionResults = append(competitionResults, res)
-		}
-	}
-	fmt.Println("\nFetching done.")
+	return competitions
+}
+
+func isCompetitionEmpty(asd []dto.Competition) bool {
+	return asd == nil || len(asd) == 0
 }
 
 func listStuff(competitionResults []model.CompetitionDetail, names []string) {

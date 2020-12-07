@@ -22,20 +22,12 @@ func ListAllCompetitionsSimplified() ([]dto.Competition, time.Duration) {
 	return ListCompetitionsByYearAndKind(valueToDisableYearFilter, ct)
 }
 
-func GetCompetitionResultsFromFileByCompetitionId(id int64) (model.CompetitionDetail, error) {
-	return loader.CompetitionDetailFromFile(id)
-}
-
-func ListAllCompetitionSimplifiedFromFile() ([]dto.Competition, error) {
+func ListAllCompetitionSimplifiedFromFile() ([]dto.Competition, error, bool) {
 	return loader.CompetitionsFromFile()
 }
 
 func SaveSimplifiedCompetitionsIntoFile(comps []dto.Competition) error {
 	return loader.WriteCompetitionsIntoFile(comps)
-}
-
-func SaveCompetitionDetailIntoFile(competitionId int64, comp model.CompetitionDetail) error {
-	return loader.WriteCompetitionDetailIntoFile(competitionId, comp)
 }
 
 func GetCompetitionResultsByCompetitionId(id int64) (model.CompetitionDetail, error, time.Duration) {

@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-func ShowMeasurements(singleFetchDurations []time.Duration, totalFetchTime time.Duration) {
+func ShowMeasurementsIfHaveAny(singleFetchDurations []time.Duration, totalFetchTime time.Duration) {
 	if singleFetchDurations == nil {
 		log.Println("-- No measured execution has happened --")
 		return
