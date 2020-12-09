@@ -7,7 +7,7 @@ import (
 	"net/http"
 )
 
-func getClient() *http.Client {
+func GetClient() *http.Client {
 	tr := &http.Transport{
 		TLSClientConfig:   &tls.Config{InsecureSkipVerify: true},
 		DisableKeepAlives: true,

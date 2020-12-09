@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/gregito/vrviewer/comp"
 	"github.com/gregito/vrviewer/comp/dto"
-	"github.com/gregito/vrviewer/comp/loader"
 	"github.com/gregito/vrviewer/comp/log"
 	"github.com/gregito/vrviewer/comp/metrics"
 	"github.com/gregito/vrviewer/comp/model"
@@ -22,7 +21,8 @@ var args []string
 func init() {
 	args = os.Args[1:]
 	if args != nil && len(args) != 0 {
-		loader.CreateTempFolderIfNotExists()
+		logInputArgs(args)
+		logEnvs()
 		fetchData()
 		invalidStart = false
 	} else {
@@ -35,7 +35,7 @@ func main() {
 		fmt.Println("No competitor name has provided.")
 		os.Exit(2)
 	} else {
-		listStuff(competitionResults, args)
+		listContent(args)
 		metrics.ShowMeasurementsIfHaveAny(singleFetchDurations, totalFetchTime)
 	}
 }
@@ -46,58 +46,11 @@ func fetchData() {
 	defer func() {
 		totalFetchTime = time.Since(start)
 	}()
-	fetchCompetitionDetails(fetchCompetitions())
+	competitionResults, singleFetchDurations = comp.ListAllCompetitionDetail()
 	fmt.Println("\nFetching done.")
 }
 
-func fetchCompetitionDetails(competitions []dto.Competition) {
-	cache, err, isRenewalNeeded := loader.CompetitionDetailsFromFile()
-	if err != nil || isRenewalNeeded {
-		fetched := make(map[int64]model.CompetitionDetail)
-		fmt.Println("About to collect all competition results. This could take a wile depending on your network bandwidth.")
-		for i, competition := range competitions {
-			getProgressBar(i, len(competitions))
-			res, err, dur := comp.GetCompetitionResultsByCompetitionId(competition.ID)
-			singleFetchDurations = appendDuration(singleFetchDurations, dur)
-			if err == nil {
-				fetched[competition.ID] = res
-				competitionResults = append(competitionResults, fetched[competition.ID])
-			}
-		}
-		if err := loader.WriteCompetitionDetailsIntoFile(fetched); err != nil {
-			log.Printf("Unable to write competition details into file!: %s\n", err)
-		}
-	} else {
-		for k := range cache {
-			competitionResults = append(competitionResults, cache[k])
-		}
-	}
-}
-
-func fetchCompetitions() []dto.Competition {
-	fmt.Println("Fetching competitions")
-	needsFileWrite := false
-	competitions, err, needsRenewal := comp.ListAllCompetitionSimplifiedFromFile()
-	if isCompetitionEmpty(competitions) || err != nil || needsRenewal {
-		needsFileWrite = true
-		var dur time.Duration
-		competitions, dur = comp.ListAllCompetitionsSimplified()
-		singleFetchDurations = appendDuration(singleFetchDurations, dur)
-	}
-	if needsFileWrite {
-		err = comp.SaveSimplifiedCompetitionsIntoFile(competitions)
-		if err != nil {
-			log.Printf("Unable to write simplified competitions into file!: %s\n", err)
-		}
-	}
-	return competitions
-}
-
-func isCompetitionEmpty(asd []dto.Competition) bool {
-	return asd == nil || len(asd) == 0
-}
-
-func listStuff(competitionResults []model.CompetitionDetail, names []string) {
+func listContent(names []string) {
 	fmt.Printf("\n")
 	for i, name := range names {
 		competitorResults := comp.GetCompetitorResults(name, competitionResults)
@@ -137,6 +90,19 @@ func printSections(sr []dto.Section) {
 	}
 }
 
+func logInputArgs(args []string) {
+	out := ""
+	for i := 0; i < len(args)-1; i++ {
+		out = out + "\"" + args[i] + "\", "
+	}
+	out = out + "\"" + args[len(args)-1] + "\""
+	log.Printf("Program arguments: %s", out)
+}
+
+func logEnvs() {
+	log.Printf("Environment variables: %s", os.Environ())
+}
+
 func printPosition(result dto.CompetitorResult) {
 	ps := " position"
 	if result.CompetitionFinished {
@@ -145,23 +111,4 @@ func printPosition(result dto.CompetitorResult) {
 		ps = "Current" + ps
 	}
 	fmt.Printf("%s: %s\n", ps, result.CurrentPosition)
-}
-
-func getProgressBar(curr int, size int) {
-	pb := "["
-	for i := 0; i < curr; i++ {
-		pb = pb + "|"
-	}
-	for i := curr; i < size-1; i++ {
-		pb = pb + "-"
-	}
-	pb = pb + "]"
-	fmt.Printf("\r%s", pb)
-}
-
-func appendDuration(orig []time.Duration, new time.Duration) []time.Duration {
-	if new > 0 {
-		return append(orig, new)
-	}
-	return orig
 }
