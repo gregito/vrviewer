@@ -7,3 +7,7 @@ type CompetitionDetail struct {
 	Sections   map[string]Section `json:"sections"`
 	Partitions []Partition        `json:"partitions"`
 }
+
+func (cd CompetitionDetail) IsEmpty() bool {
+	return cd.ID == 0 && len(cd.Name) == 0 && len(cd.Status) == 0 && cd.Sections == nil && cd.Partitions == nil
+}

@@ -2,8 +2,9 @@ package comp
 
 import (
 	"fmt"
-	"github.com/gregito/vrviewer/comp/loader"
 	"github.com/gregito/vrviewer/comp/log"
+	"net/http"
+	"sync"
 	"time"
 
 	"github.com/gregito/vrviewer/comp/dto"
@@ -17,21 +18,53 @@ const (
 	valueToDisableYearFilter        = 0
 )
 
+var httpClient *http.Client
+
+func init() {
+	httpClient = webexec.GetClient()
+}
+
 func ListAllCompetitionsSimplified() ([]dto.Competition, time.Duration) {
 	var ct model.ClimbingType
 	return ListCompetitionsByYearAndKind(valueToDisableYearFilter, ct)
 }
 
-func ListAllCompetitionSimplifiedFromFile() ([]dto.Competition, error, bool) {
-	return loader.CompetitionsFromFile()
+func ListAllCompetitionDetail() ([]model.CompetitionDetail, []time.Duration) {
+	var execDurs []time.Duration
+	var compDets []model.CompetitionDetail
+	fmt.Println("")
+	comps, dur := ListAllCompetitionsSimplified()
+	execDurs = append(execDurs, dur)
+	comDetChan := make(chan model.CompetitionDetail)
+	compDetFetchDurChan := make(chan time.Duration)
+	var wg sync.WaitGroup
+	for _, cp := range comps {
+		wg.Add(1)
+		go func(id int64) {
+			doTheThing(httpClient, id, comDetChan, compDetFetchDurChan)
+			wg.Done()
+		}(cp.ID)
+	}
+	go func() {
+		wg.Wait()
+		close(comDetChan)
+		close(compDetFetchDurChan)
+	}()
+	for detail := range comDetChan {
+		compDets = append(compDets, detail)
+		execDurs = append(execDurs, <-compDetFetchDurChan)
+	}
+	return compDets, execDurs
 }
 
-func SaveSimplifiedCompetitionsIntoFile(comps []dto.Competition) error {
-	return loader.WriteCompetitionsIntoFile(comps)
+func doTheThing(client *http.Client, id int64, comDetChan chan model.CompetitionDetail, compDetFetchDurChan chan time.Duration) {
+	cpd, _, d := GetCompetitionResultsByCompetitionId(client, id)
+	comDetChan <- cpd
+	compDetFetchDurChan <- d
 }
 
-func GetCompetitionResultsByCompetitionId(id int64) (model.CompetitionDetail, error, time.Duration) {
-	resp, err, dur := webexec.MeasuredExecuteCall(fmt.Sprintf("%s%d/results", basePath, id), model.CompetitionDetail{})
+func GetCompetitionResultsByCompetitionId(client *http.Client, id int64) (model.CompetitionDetail, error, time.Duration) {
+	resp, err, dur := webexec.MeasuredExecuteCallWithClient(client, fmt.Sprintf("%s%d/results", basePath, id), model.CompetitionDetail{})
 	if err != nil {
 		log.Println(err)
 		return model.CompetitionDetail{}, err, dur
@@ -41,7 +74,7 @@ func GetCompetitionResultsByCompetitionId(id int64) (model.CompetitionDetail, er
 }
 
 func ListCompetitionsByYearAndKind(year int64, kind model.ClimbingType) ([]dto.Competition, time.Duration) {
-	resp, err, dur := webexec.MeasuredExecuteCall(basePath, []model.Competition{})
+	resp, err, dur := webexec.MeasuredExecuteCallWithClient(httpClient, basePath, []model.Competition{})
 	if err != nil {
 		log.Println(err)
 		var empty []dto.Competition

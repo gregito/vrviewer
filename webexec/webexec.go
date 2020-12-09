@@ -10,22 +10,20 @@ import (
 	"github.com/mitchellh/mapstructure"
 )
 
-func MeasuredExecuteCall(path string, kind interface{}) (interface{}, error, time.Duration) {
+func MeasuredExecuteCallWithClient(client *http.Client, path string, kind interface{}) (interface{}, error, time.Duration) {
 	start := time.Now()
-	i, err := ExecuteCall(path, kind)
+	i, err := executeCallWithClient(client, path, kind)
 	return i, err, time.Since(start)
 }
 
-func ExecuteCall(path string, kind interface{}) (interface{}, error) {
+func executeCallWithClient(client *http.Client, path string, kind interface{}) (interface{}, error) {
 	log.Println("HTTP request call has been requested")
-	client := getClient()
 	log.Printf("Executing call towards: %s", path)
 	resp, err := client.Get(path)
 	if err != nil {
 		log.Println(err)
 		return kind, err
 	}
-	log.Printf("Call response: %s\n", fmt.Sprintf("%+v\n", resp))
 	defer resp.Body.Close()
 	if resp.StatusCode != http.StatusOK {
 		log.Printf("Error! Status code was:%d\n", resp.StatusCode)

@@ -9,8 +9,8 @@ import (
 var enableLogging bool
 
 func init() {
-	enable, err := strconv.ParseBool(os.Getenv("DEBUG"))
-	if err == nil && enable {
+	enable, err := strconv.ParseInt(os.Getenv("DEBUG"), 10, 0)
+	if err == nil && enable == 1 {
 		enableLogging = true
 	} else {
 		enableLogging = false
