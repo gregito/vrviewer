@@ -9,3 +9,11 @@ type SectionResult struct {
 	ZoneTries    int64         `json:"zoneTries"`
 	RouteResults []RouteResult `json:"routeResults"`
 }
+
+func (sr SectionResult) HasValidLeadResult() bool {
+	return sr.Points > 0
+}
+
+func (sr SectionResult) HasValidBoulderResult() bool {
+	return !(sr.Tops == 0 && sr.TopTries == 0 && sr.Zones == 0 && sr.ZoneTries == 0)
+}
