@@ -7,6 +7,6 @@ type CompetitorResult struct {
 	CompetitionFinished bool
 	Type                model.ClimbingType
 	Name                string
-	CurrentPosition     string
+	CurrentPosition     int64
 	SectionResults      []Section
 }

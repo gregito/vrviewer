@@ -4,26 +4,34 @@ import (
 	"github.com/gregito/vrviewer/comp/dto"
 	"github.com/gregito/vrviewer/comp/log"
 	"github.com/gregito/vrviewer/comp/model"
-	"strconv"
 	"sync"
 )
 
 func GetCompetitorResults(name string, cds []model.CompetitionDetail) []dto.CompetitorResult {
 	var result []dto.CompetitorResult
+	crChan := make(chan *dto.CompetitorResult)
 	wg := sync.WaitGroup{}
 	for _, cd := range cds {
 		wg.Add(1)
 		go func(cd model.CompetitionDetail) {
-			subResult := getCompetitorResultInCompetitionDetail(name, cd)
-			if subResult != nil {
-				subResult.CompetitionFinished = cd.IsFinished()
-				result = append(result, *subResult)
-			}
+			getCompetitorResultInCompetitionDetailIntoChannel(name, cd, crChan)
 			wg.Done()
 		}(cd)
 	}
-	wg.Wait()
+	go func() {
+		wg.Wait()
+		close(crChan)
+	}()
+	for r := range crChan {
+		if r != nil {
+			result = append(result, *r)
+		}
+	}
 	return result
+}
+
+func getCompetitorResultInCompetitionDetailIntoChannel(name string, cd model.CompetitionDetail, crChan chan *dto.CompetitorResult) {
+	crChan <- getCompetitorResultInCompetitionDetail(name, cd)
 }
 
 func getCompetitorResultInCompetitionDetail(name string, cd model.CompetitionDetail) *dto.CompetitorResult {
@@ -42,11 +50,12 @@ func getCompetitorResultInCompetitionDetail(name string, cd model.CompetitionDet
 		}
 		if len(sections) > 0 {
 			return &dto.CompetitorResult{
-				CompetitionName: cd.Name,
-				Type:            *climbingType,
-				Name:            name,
-				CurrentPosition: strconv.FormatInt(result.Position, 10),
-				SectionResults:  sections,
+				CompetitionName:     cd.Name,
+				Type:                *climbingType,
+				Name:                name,
+				CompetitionFinished: cd.IsFinished(),
+				CurrentPosition:     result.Position,
+				SectionResults:      sections,
 			}
 		}
 	}
