@@ -2,6 +2,7 @@ package comp
 
 import (
 	"github.com/gregito/vrviewer/comp/dto"
+	"github.com/gregito/vrviewer/comp/log"
 	"github.com/gregito/vrviewer/comp/model"
 	"strconv"
 	"sync"
@@ -15,7 +16,7 @@ func GetCompetitorResults(name string, cds []model.CompetitionDetail) []dto.Comp
 		go func(cd model.CompetitionDetail) {
 			subResult := getCompetitorResultInCompetitionDetail(name, cd)
 			if subResult != nil {
-				subResult.CompetitionFinished = isCompetitionFinished(cd.Status)
+				subResult.CompetitionFinished = cd.IsFinished()
 				result = append(result, *subResult)
 			}
 			wg.Done()
@@ -29,37 +30,38 @@ func getCompetitorResultInCompetitionDetail(name string, cd model.CompetitionDet
 	result := findResultOfCompetitor(name, cd)
 	sectionResult := findSectionResultOfCompetitor(name, result)
 	var sections []dto.Section
-	climbingType := cd.Partitions[0].ClimbingType // TODO: handle this fragile piece of code
-	for _, s := range sectionResult {
-		if isValidResult(climbingType, s) {
-			sections = append(sections, convertSectionResultAndSectionMapToSectionDto(s, cd.Sections, climbingType))
+	var climbingType *model.ClimbingType
+	if len(cd.Partitions) == 0 {
+		log.Println("Unable to determine competition climbing type because no Partition has been provided.\n")
+	} else {
+		climbingType = &cd.Partitions[0].ClimbingType
+		for _, s := range sectionResult {
+			if isValidResult(climbingType, s) {
+				sections = append(sections, convertSectionResultAndSectionMapToSectionDto(s, cd.Sections, *climbingType))
+			}
 		}
-	}
-	if len(sections) > 0 {
-		return &dto.CompetitorResult{
-			CompetitionName: cd.Name,
-			Type:            climbingType,
-			Name:            name,
-			CurrentPosition: strconv.FormatInt(result.Position, 10),
-			SectionResults:  sections,
+		if len(sections) > 0 {
+			return &dto.CompetitorResult{
+				CompetitionName: cd.Name,
+				Type:            *climbingType,
+				Name:            name,
+				CurrentPosition: strconv.FormatInt(result.Position, 10),
+				SectionResults:  sections,
+			}
 		}
 	}
 	return nil
 }
 
-func isCompetitionFinished(status string) bool {
-	return status == "CLOSED"
-}
-
-func isValidResult(t model.ClimbingType, sr model.SectionResult) bool {
-	if model.Lead == t {
-		return sr.Points > 0
+func isValidResult(t *model.ClimbingType, sr model.SectionResult) bool {
+	if t == nil {
+		log.Println("Section result is not valid since no climbing type has given to decide its validity upon")
+		return false
 	}
-	return !isInvalidBoulderResult(sr)
-}
-
-func isInvalidBoulderResult(sr model.SectionResult) bool {
-	return sr.Tops == 0 && sr.TopTries == 0 && sr.Zones == 0 && sr.ZoneTries == 0
+	if model.Lead == *t {
+		return sr.HasValidLeadResult()
+	}
+	return sr.HasValidBoulderResult()
 }
 
 func findResultOfCompetitor(name string, cd model.CompetitionDetail) model.Result {
