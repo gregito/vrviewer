@@ -41,7 +41,7 @@ func ListAllCompetitionDetail() ([]model.CompetitionDetail, []time.Duration) {
 	for _, cp := range comps {
 		wg.Add(1)
 		go func(id int64) {
-			doTheThing(httpClient, id, comDetChan, compDetFetchDurChan)
+			fetchCompetitionDetailByCompetitionID(httpClient, id, comDetChan, compDetFetchDurChan)
 			wg.Done()
 		}(cp.ID)
 	}
@@ -57,7 +57,7 @@ func ListAllCompetitionDetail() ([]model.CompetitionDetail, []time.Duration) {
 	return compDets, execDurs
 }
 
-func doTheThing(client *http.Client, id int64, comDetChan chan model.CompetitionDetail, compDetFetchDurChan chan time.Duration) {
+func fetchCompetitionDetailByCompetitionID(client *http.Client, id int64, comDetChan chan model.CompetitionDetail, compDetFetchDurChan chan time.Duration) {
 	cpd, _, d := GetCompetitionResultsByCompetitionId(client, id)
 	comDetChan <- cpd
 	compDetFetchDurChan <- d
