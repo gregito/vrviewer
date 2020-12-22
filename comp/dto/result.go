@@ -4,9 +4,8 @@ import "github.com/gregito/vrviewer/comp/model"
 
 type CompetitorResult struct {
 	CompetitionName     string
+	Year                int64
+	Category            model.ClimbingType
 	CompetitionFinished bool
-	Type                model.ClimbingType
-	Name                string
-	CurrentPosition     int64
-	SectionResults      []Section
+	AgeGroupResult      []AgeGroupResult
 }

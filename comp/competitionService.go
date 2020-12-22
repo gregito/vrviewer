@@ -13,9 +13,9 @@ import (
 )
 
 const (
-	basePath                 string = "https://vr2.mhssz.hu/api/1.0.0/competitions/"
-	firstValidYear                  = 2018
-	valueToDisableYearFilter        = 0
+	ValueToDisableYearFilter = 0
+	basePath                 = "https://vr2.mhssz.hu/api/1.0.0/competitions/"
+	firstValidYear           = 2018
 )
 
 var httpClient *http.Client
@@ -24,16 +24,11 @@ func init() {
 	httpClient = webexec.GetClient()
 }
 
-func ListAllCompetitionsSimplified() ([]dto.Competition, time.Duration) {
-	var ct model.ClimbingType
-	return ListCompetitionsByYearAndKind(valueToDisableYearFilter, ct)
-}
-
-func ListAllCompetitionDetail() ([]model.CompetitionDetail, []time.Duration) {
+func ListAllCompetitionDetail(year int64, kind model.ClimbingType) ([]model.CompetitionDetail, []time.Duration) {
 	var execDurs []time.Duration
 	var compDets []model.CompetitionDetail
 	fmt.Println("")
-	comps, dur := ListAllCompetitionsSimplified()
+	comps, dur := ListCompetitionsByYearAndKind(year, kind)
 	execDurs = append(execDurs, dur)
 	comDetChan := make(chan model.CompetitionDetail)
 	compDetFetchDurChan := make(chan time.Duration)
@@ -96,7 +91,7 @@ func filterCompetitions(comps []dto.Competition, year int64, kind model.Climbing
 
 func collectCompetitionsByYear(comps []dto.Competition, year int64) []dto.Competition {
 	var result []dto.Competition
-	if year != valueToDisableYearFilter {
+	if year != ValueToDisableYearFilter {
 		if year < firstValidYear {
 			return result
 		}
