@@ -16,13 +16,30 @@ Afterwards you can find the compiled binaries under the `/build/Linux|Darwin|Win
 Once you grabbed your executable binary from the above-mentioned folder – or from the Releases section of this GitHub 
 page – you can use it from your terminal in the following way(s):
 
-```vrviewer "your name"```
+### Filtering for name(s)
+You can search for one or multiple names by passing the names after the `--names` flag separated by colons (but each 
+colon should not be followed by a whitespace)
+
+Example for multiple names: ```./vrviewer --names="your name,his name,her name"```
+
+### Filtering for year
+If you would like to search for a specific year you can do that by providing the year after the `--year` flag.
+
+e.g.: ```./vrviewer --names="your name" --year=2020```
+
+### Filtering for competition type
+When you're interested only in a specific kind of competition type (boulder or lead) you can filter it with the `--type` 
+flag.
+
+The valid values are: **BOULDER, LEAD**
+
+e.g.: `./vrviewer --names="your name" --type=BOULDER`
 
 If - for some mysterious reason – you would like to have some more information what is going on behind the scenes, set the 
 ```DEBUG=1``` environment variable in advance to your current command prompt, or execute the application with this 
 value inlined before the executable file, like this:
 
-```DEBUG=1 vrviewer "your name"```
+```DEBUG=1 ./vrviewer "your name"```
 
 ## Releases
 Sometimes when I feel like to do so I'm "releasing" a seemingly "okayish" version of the current state that you can use 
