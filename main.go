@@ -17,6 +17,7 @@ var competitionResults []model.CompetitionDetail
 var singleFetchDurations []time.Duration
 var totalFetchTime time.Duration
 var compType model.ClimbingType
+var competitionName string
 var names []string
 var year int64
 var args []string
@@ -45,7 +46,7 @@ func fetchData() {
 	defer func() {
 		totalFetchTime = time.Since(start)
 	}()
-	competitionResults, singleFetchDurations = comp.ListAllCompetitionDetail(year, compType)
+	competitionResults, singleFetchDurations = comp.ListAllCompetitionDetail(competitionName, year, compType)
 	fmt.Println("\nFetching done.")
 }
 
@@ -121,6 +122,7 @@ func findAndParseInputs() {
 		findNamesInArgs(arg)
 		findDesiredYearInArgs(arg)
 		findCompetitionTypeInArgs(arg)
+		findDesiredCompetitionByNameInArgs(arg)
 	}
 }
 
@@ -148,6 +150,18 @@ func findDesiredYearInArgs(arg string) {
 		} else {
 			log.Println("Year filter value has been set to: " + splitArg[0])
 		}
+	}
+}
+
+func findDesiredCompetitionByNameInArgs(arg string) {
+	if strings.HasPrefix(arg, "--competition-name") {
+		splitArg := splitByEqualSign(arg)
+		if len(splitArg) == 2 && len(splitArg[1]) > 0 {
+			competitionName = splitArg[1]
+		} else {
+			log.Println("Unable to set competition name")
+		}
+
 	}
 }
 
