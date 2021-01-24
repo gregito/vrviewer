@@ -24,11 +24,11 @@ func init() {
 	httpClient = webexec.GetClient()
 }
 
-func ListAllCompetitionDetail(year int64, kind model.ClimbingType) ([]model.CompetitionDetail, []time.Duration) {
+func ListAllCompetitionDetail(name string, year int64, kind model.ClimbingType) ([]model.CompetitionDetail, []time.Duration) {
 	var execDurs []time.Duration
 	var compDets []model.CompetitionDetail
 	fmt.Println("")
-	comps, dur := ListCompetitionsByYearAndKind(year, kind)
+	comps, dur := ListCompetitionsByYearAndNameAndKind(name, year, kind)
 	execDurs = append(execDurs, dur)
 	comDetChan := make(chan model.CompetitionDetail)
 	compDetFetchDurChan := make(chan time.Duration)
@@ -68,7 +68,7 @@ func GetCompetitionResultsByCompetitionId(client *http.Client, id int64) (model.
 	return result, nil, dur
 }
 
-func ListCompetitionsByYearAndKind(year int64, kind model.ClimbingType) ([]dto.Competition, time.Duration) {
+func ListCompetitionsByYearAndNameAndKind(name string, year int64, kind model.ClimbingType) ([]dto.Competition, time.Duration) {
 	resp, err, dur := webexec.MeasuredExecuteCallWithClient(httpClient, basePath, []model.Competition{})
 	if err != nil {
 		log.Println(err)
@@ -77,12 +77,25 @@ func ListCompetitionsByYearAndKind(year int64, kind model.ClimbingType) ([]dto.C
 	}
 	iaep := convertInterfaceArrayToCompetitionArray(resp)
 	cp := convertCompetitionArrayToCompetitionArray(iaep)
-	result := filterCompetitions(cp, year, kind)
+	result := filterCompetitions(cp, name, year, kind)
 	return result, dur
 }
 
-func filterCompetitions(comps []dto.Competition, year int64, kind model.ClimbingType) []dto.Competition {
+func collectCompetitionByName(comps []dto.Competition, name string) []dto.Competition {
+	var result []dto.Competition
+	for _, comp := range comps {
+		if comp.Name == name {
+			result = append(result, comp)
+		}
+	}
+	return result
+}
+
+func filterCompetitions(comps []dto.Competition, name string, year int64, kind model.ClimbingType) []dto.Competition {
 	result := collectCompetitionsByYear(comps, year)
+	if len(name) > 0 {
+		result = collectCompetitionByName(comps, name)
+	}
 	if kind != model.Boulder && kind != model.Lead {
 		return result
 	}
