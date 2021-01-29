@@ -130,7 +130,10 @@ func findNamesInArgs(arg string) {
 	if strings.HasPrefix(arg, "--names") {
 		splitArg := splitByEqualSign(arg)
 		if len(splitArg) == 2 {
-			names = strings.Split(splitArg[1], ",")
+			rawInputNames := strings.Split(splitArg[1], ",")
+			for _, name := range rawInputNames {
+				names = append(names, strings.TrimSpace(name))
+			}
 			log.Printf("The given name(s) has been provided by the user: %s\n", names)
 		} else {
 			names = make([]string, 0)
@@ -148,7 +151,7 @@ func findDesiredYearInArgs(arg string) {
 			log.Printf("Unable to convert string year into int64 (%s -> int64)\n", splitArg[0])
 			year = comp.ValueToDisableYearFilter
 		} else {
-			log.Println("Year filter value has been set to: " + splitArg[0])
+			log.Println("Year filter value has been set to: " + splitArg[1])
 		}
 	}
 }
