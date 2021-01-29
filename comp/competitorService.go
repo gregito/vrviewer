@@ -4,6 +4,7 @@ import (
 	"github.com/gregito/vrviewer/comp/dto"
 	"github.com/gregito/vrviewer/comp/log"
 	"github.com/gregito/vrviewer/comp/model"
+	"strings"
 	"sync"
 )
 
@@ -89,15 +90,20 @@ func findResultsOfCompetitor(name string, cd model.CompetitionDetail) []dto.Exte
 	results := make([]dto.ExtendedResult, 0)
 	for _, p := range cd.Partitions {
 		for _, r := range p.Results {
-			if name == r.Name && r.Position > 0 {
+			if name == strings.TrimSpace(r.Name) && r.Position > 0 {
 				results = append(results, dto.ExtendedResult{
 					AgeGroup: p.AgeGroup,
-					Result:   r,
+					Result:   *trimWhitespacesFromNameInResult(&r),
 				})
 			}
 		}
 	}
 	return results
+}
+
+func trimWhitespacesFromNameInResult(r *model.Result) *model.Result {
+	r.Name = strings.TrimSpace(r.Name)
+	return r
 }
 
 func findSectionResultOfCompetitor(name string, cd dto.ExtendedResult) []model.SectionResult {
