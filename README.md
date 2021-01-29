@@ -35,11 +35,17 @@ The valid values are: **BOULDER, LEAD**
 
 e.g.: `./vrviewer --names="your name" --type=BOULDER`
 
+### Filtering for competition name
+If you would like to search for a specific competition in a year you can do that by providing the year after 
+the `--competition-name` flag.
+
+e.g.: ```./vrviewer --competition-name="Monkey Power 6" --year=2021```
+
 If - for some mysterious reason – you would like to have some more information what is going on behind the scenes, set the 
 ```DEBUG=1``` environment variable in advance to your current command prompt, or execute the application with this 
 value inlined before the executable file, like this:
 
-```DEBUG=1 ./vrviewer "your name"```
+```DEBUG=1 ./vrviewer --names="your name"```
 
 ## Releases
 Sometimes when I feel like to do so I'm "releasing" a seemingly "okayish" version of the current state that you can use 
