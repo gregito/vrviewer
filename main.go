@@ -2,15 +2,16 @@ package main
 
 import (
 	"fmt"
+	"os"
+	"strconv"
+	"strings"
+	"time"
+
 	"github.com/gregito/vrviewer/comp"
 	"github.com/gregito/vrviewer/comp/dto"
 	"github.com/gregito/vrviewer/comp/log"
 	"github.com/gregito/vrviewer/comp/metrics"
 	"github.com/gregito/vrviewer/comp/model"
-	"os"
-	"strconv"
-	"strings"
-	"time"
 )
 
 var competitionResults []model.CompetitionDetail
@@ -59,7 +60,11 @@ func listContent() {
 			fmt.Println("Name: " + name)
 			for _, result := range competitorResults {
 				fmt.Println("==================")
-				fmt.Printf("%s - %s\n\n", result.CompetitionName, result.Category)
+				if len(competitionName) > 0 {
+					fmt.Println()
+				} else {
+					fmt.Printf("%s - %s\n\n", result.CompetitionName, result.Category)
+				}
 				for _, ageGroup := range result.AgeGroupResult {
 					printAgeGroup(result.CompetitionFinished, ageGroup)
 				}
@@ -89,6 +94,7 @@ func printSections(sr []dto.Section) {
 			fmt.Println("Zones: \t\t" + strconv.FormatInt(r.Zones, 10))
 			fmt.Println("Top tries: \t" + strconv.FormatInt(r.TopTries, 10))
 			fmt.Println("Zone tries: \t" + strconv.FormatInt(r.ZoneTries, 10))
+			fmt.Println()
 		}
 		fmt.Println()
 	}

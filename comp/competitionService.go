@@ -2,10 +2,11 @@ package comp
 
 import (
 	"fmt"
-	"github.com/gregito/vrviewer/comp/log"
 	"net/http"
 	"sync"
 	"time"
+
+	"github.com/gregito/vrviewer/comp/log"
 
 	"github.com/gregito/vrviewer/comp/dto"
 	"github.com/gregito/vrviewer/comp/model"
@@ -14,7 +15,7 @@ import (
 
 const (
 	ValueToDisableYearFilter = 0
-	basePath                 = "https://vr2.mhssz.hu/api/1.0.0/competitions/"
+	basePath                 = "https://vr.mhssz.hu/api/1.0.0/competitions/"
 	firstValidYear           = 2018
 )
 
