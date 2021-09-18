@@ -1,17 +1,19 @@
 package comp
 
 import (
+	"strings"
+	"sync"
+
 	"github.com/gregito/vrviewer/comp/dto"
 	"github.com/gregito/vrviewer/comp/log"
 	"github.com/gregito/vrviewer/comp/model"
-	"strings"
-	"sync"
 )
 
 func GetCompetitorResults(name string, cds []model.CompetitionDetail) []dto.CompetitorResult {
 	var result []dto.CompetitorResult
 	crChan := make(chan *dto.CompetitorResult)
 	wg := sync.WaitGroup{}
+	log.Printf("About to fetch competition results for: %s\n", name)
 	for _, cd := range cds {
 		wg.Add(1)
 		go func(cd model.CompetitionDetail) {

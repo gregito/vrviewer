@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -12,6 +13,8 @@ import (
 	"github.com/gregito/vrviewer/comp/log"
 	"github.com/gregito/vrviewer/comp/metrics"
 	"github.com/gregito/vrviewer/comp/model"
+
+	"github.com/lensesio/tableprinter"
 )
 
 var competitionResults []model.CompetitionDetail
@@ -22,9 +25,11 @@ var competitionName string
 var names []string
 var year int64
 var args []string
+var competitionListingRequested bool
 
 func init() {
 	args = os.Args[1:]
+	fmt.Println()
 	if args != nil && len(args) != 0 {
 		logInputArgs(args)
 		logEnvs()
@@ -53,26 +58,63 @@ func fetchData() {
 
 func listContent() {
 	fmt.Printf("\n")
-	for _, name := range names {
-		competitorResults := comp.GetCompetitorResults(name, competitionResults)
-		if competitorResults != nil && len(competitorResults) > 0 {
-			fmt.Println("------------------")
-			fmt.Println("Name: " + name)
-			for _, result := range competitorResults {
-				fmt.Println("==================")
-				if len(competitionName) > 0 {
-					fmt.Println()
-				} else {
-					fmt.Printf("%s - %s\n\n", result.CompetitionName, result.Category)
+	if competitionListingRequested {
+		tableprinter.Print(os.Stdout, collectCompetitions())
+	} else {
+		for _, name := range names {
+			competitorResults := comp.GetCompetitorResults(name, competitionResults)
+			if competitorResults != nil && len(competitorResults) > 0 {
+				fmt.Println("------------------")
+				fmt.Println("Name: " + name)
+				for _, result := range competitorResults {
+					fmt.Println("==================")
+					if len(competitionName) > 0 {
+						fmt.Println()
+					} else {
+						fmt.Printf("%s - %s\n\n", result.CompetitionName, result.Category)
+					}
+					for _, ageGroup := range result.AgeGroupResult {
+						printAgeGroup(result.CompetitionFinished, ageGroup)
+					}
 				}
-				for _, ageGroup := range result.AgeGroupResult {
-					printAgeGroup(result.CompetitionFinished, ageGroup)
-				}
+			} else {
+				fmt.Println("No competitor has been found with name: " + name)
 			}
-		} else {
-			fmt.Println("No competitor has been found with name: " + name)
 		}
 	}
+}
+
+func collectCompetitions() []dto.BasicCompetition {
+	var list []dto.BasicCompetition
+	sort.SliceStable(competitionResults, func(i, j int) bool {
+		return competitionResults[i].ID < competitionResults[j].ID
+	})
+	for _, compResults := range competitionResults {
+		var comp dto.BasicCompetition
+		if len(string(compType)) != 0 {
+			comp = dto.BasicCompetition{
+				Name:   compResults.Name,
+				Type:   compType,
+				Status: compResults.Status,
+			}
+		} else {
+			if len(compResults.Partitions) >= 1 {
+				comp = dto.BasicCompetition{
+					Name:   compResults.Name,
+					Type:   compResults.Partitions[0].ClimbingType,
+					Status: compResults.Status,
+				}
+			} else {
+				comp = dto.BasicCompetition{
+					Name:   compResults.Name,
+					Type:   "Unknown",
+					Status: compResults.Status,
+				}
+			}
+		}
+		list = append(list, comp)
+	}
+	return list
 }
 
 func printAgeGroup(isCompetitionFinished bool, ag dto.AgeGroupResult) {
@@ -125,10 +167,24 @@ func logEnvs() {
 
 func findAndParseInputs() {
 	for _, arg := range args {
-		findNamesInArgs(arg)
+		checkCompetitionListingRequested(arg)
 		findDesiredYearInArgs(arg)
 		findCompetitionTypeInArgs(arg)
+		findNamesInArgs(arg)
 		findDesiredCompetitionByNameInArgs(arg)
+	}
+	if competitionListingRequested {
+		if year == 0 {
+			fmt.Println("If competition listing requested then a proper year has to be given!")
+			os.Exit(2)
+		}
+	}
+}
+
+func checkCompetitionListingRequested(arg string) {
+	if strings.HasPrefix(arg, "--list-competitions") {
+		competitionListingRequested = true
+		log.Println("Competition listing requested.")
 	}
 }
 
