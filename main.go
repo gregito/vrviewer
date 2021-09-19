@@ -59,7 +59,13 @@ func fetchData() {
 func listContent() {
 	fmt.Printf("\n")
 	if competitionListingRequested {
-		tableprinter.Print(os.Stdout, collectCompetitions())
+		competitions := collectCompetitions()
+		if len(competitions) == 0 {
+			fmt.Printf("No competition has found for year: %d\n\n", year)
+		} else {
+			tableprinter.Print(os.Stdout, competitions)
+			fmt.Println()
+		}
 	} else {
 		for _, name := range names {
 			competitorResults := comp.GetCompetitorResults(name, competitionResults)
