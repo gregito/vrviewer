@@ -41,6 +41,12 @@ the `--competition-name` flag.
 
 e.g.: ```./vrviewer --competition-name="Monkey Power 6" --year=2021```
 
+### Listing competitions by year
+You can list the competition for a given year by using the `--year` and the `--list-competitions` flags together.
+It is necessary and required to define a year.
+
+e.g.: ```./vrviewer --list-competitions --year=2021```
+
 If - for some mysterious reason – you would like to have some more information what is going on behind the scenes, set the 
 ```DEBUG=1``` environment variable in advance to your current command prompt, or execute the application with this 
 value inlined before the executable file, like this:
